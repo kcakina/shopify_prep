@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 from app.db import DB
-from app.services import create_new_exchange
+from app.services import create_new_exchange, add_person_to_exchange
 
 app = Flask(__name__)
 database = DB()
@@ -21,6 +21,15 @@ def build_new_exchange():
     if not exchange:
         return jsonify({"message": "Unable to create"})
     return jsonify({"exchange_id" : exchange.id})
+
+@app.route("/exchanges/<id>/participants", methods=["POST"])
+def add_participant(id):
+
+    result = add_person_to_exchange(database,id)
+    if result:
+        return jsonify({"new person added to exchange": id})
+    else:
+        return jsonify({"Unable to add person to exchange": id, "status": 400})
 
 
 if __name__ == "__main__":
