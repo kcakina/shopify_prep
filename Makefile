@@ -19,4 +19,17 @@ curl:
 	@echo ""
 	curl -s http://localhost:8080/health
 	@echo ""
+	curl -s -X POST http://localhost:8080/exchanges
+	@echo ""
+
+create-exchange:
+	curl -s -X POST http://localhost:8080/exchanges
+	@echo ""
+
+add-participant:
+	curl -s -X POST http://localhost:8080/exchanges/"$(ID)"/participants
+	@echo ""
+
+test:
+	.venv/bin/python -m pytest tests/
 

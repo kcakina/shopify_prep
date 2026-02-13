@@ -1,9 +1,5 @@
-from app.models import Giver, Receiver, Exchange
+from app.models import Person, Exchange
 
-g = Giver()
-r = Receiver()
-e = Exchange()
+p = Person()
 
-print(g.id)
-print(r.id)
-print(e.id)
+print(p.id)
