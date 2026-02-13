@@ -19,4 +19,10 @@ curl:
 	@echo ""
 	curl -s http://localhost:8080/health
 	@echo ""
+	curl -s -X POST http://localhost:8080/exchanges
+	@echo ""
+
+create-exchange:
+	curl -s -X POST http://localhost:8080/exchanges
+	@echo ""
 
