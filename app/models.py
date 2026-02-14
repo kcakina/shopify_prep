@@ -8,13 +8,10 @@ class Person:
 class Exchange:
     def __init__(self):
         self.id = uuid.uuid4()
+        self.exclusions = set() # set of tuples
         self.assignments = {}
         self.people = set()
 
-
-class Exclusions:
-    def __init__(self, personA, PersonB):
-        self.exclusions = {}
 
 
 

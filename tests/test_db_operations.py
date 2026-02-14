@@ -1,7 +1,8 @@
 import pytest
 from app.db import DB
 from app.models import Exchange
-from app.services import create_new_exchange, add_person_to_exchange
+from app.models import Person
+from app.services import create_new_exchange, add_person_to_exchange, create_exclusions
 
 
 def test_create_new_exchange_returns_exchange():
@@ -42,3 +43,41 @@ def test_db_add_person_to_db_raises_on_duplicate():
     db.add_person_to_db("person-1")
     with pytest.raises(Exception, match="invalid person id"):
         db.add_person_to_db("person-1")
+
+
+def _setup_exchange_with_two_people(db):
+    exchange = db.create_new_exchange()
+    p1 = Person()
+    p2 = Person()
+    db.add_person_to_db(p1.id)
+    db.add_person_to_db(p2.id)
+    db.add_person_to_exchange(p1.id, exchange.id)
+    db.add_person_to_exchange(p2.id, exchange.id)
+    return exchange, p1, p2
+
+
+def test_create_exclusions_success():
+    db = DB()
+    exchange, p1, p2 = _setup_exchange_with_two_people(db)
+    create_exclusions(db, exchange.id, p1.id, p2.id)
+    assert (p1.id, p2.id) in exchange.exclusions
+
+
+def test_create_exclusions_fails_person_not_in_exchange():
+    db = DB()
+    exchange = db.create_new_exchange()
+    p1 = Person()
+    p2 = Person()
+    db.add_person_to_db(p1.id)
+    db.add_person_to_db(p2.id)
+    db.add_person_to_exchange(p1.id, exchange.id)
+    # p2 not added to exchange
+    result = create_exclusions(db, exchange.id, p1.id, p2.id)
+    assert result is False
+
+
+def test_create_exclusions_fails_person_not_in_db():
+    db = DB()
+    exchange = db.create_new_exchange()
+    result = create_exclusions(db, exchange.id, "fake-person-1", "fake-person-2")
+    assert result is False
