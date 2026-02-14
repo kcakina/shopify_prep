@@ -2,7 +2,7 @@ import pytest
 from app.db import DB
 from app.models import Exchange
 from app.models import Person
-from app.services import create_new_exchange, add_person_to_exchange, create_exclusions
+from app.services import create_new_exchange, add_person_to_exchange, create_exclusions, assign_exchange_partners
 
 
 def test_create_new_exchange_returns_exchange():
@@ -81,3 +81,47 @@ def test_create_exclusions_fails_person_not_in_db():
     exchange = db.create_new_exchange()
     result = create_exclusions(db, exchange.id, "fake-person-1", "fake-person-2")
     assert result is False
+
+
+def _setup_exchange_with_people(db, count):
+    exchange = db.create_new_exchange()
+    people = []
+    for _ in range(count):
+        p = Person()
+        db.add_person_to_db(p.id)
+        db.add_person_to_exchange(p.id, exchange.id)
+        people.append(p)
+    return exchange, people
+
+
+def test_assign_exchange_partners_everyone_gets_a_partner():
+    db = DB()
+    exchange, people = _setup_exchange_with_people(db, 4)
+    assignments = assign_exchange_partners(db, exchange.id)
+    assert len(assignments) == 4
+    for p in people:
+        assert p.id in assignments
+
+
+def test_assign_exchange_partners_no_self_assignment():
+    db = DB()
+    exchange, people = _setup_exchange_with_people(db, 5)
+    assignments = assign_exchange_partners(db, exchange.id)
+    for giver, receiver in assignments.items():
+        assert giver != receiver
+
+
+def test_assign_exchange_partners_respects_exclusions():
+    db = DB()
+    exchange, people = _setup_exchange_with_people(db, 4)
+    p1, p2 = people[0], people[1]
+    db.create_exclusion(exchange.id, p1.id, p2.id)
+    assignments = assign_exchange_partners(db, exchange.id)
+    assert assignments[p1.id] != p2.id
+
+
+def test_assign_exchange_partners_stores_on_exchange():
+    db = DB()
+    exchange, people = _setup_exchange_with_people(db, 3)
+    assignments = assign_exchange_partners(db, exchange.id)
+    assert exchange.assignments == assignments
