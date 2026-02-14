@@ -6,8 +6,7 @@ from app.models import Person, Exchange
 from typing import Optional
 class DB:
     def __init__(self):
-        self.exchanges = {}
-        self.exclusions = {}
+        self.exchanges = defaultdict(Exchange)
         self.people = {}
 
     def create_new_exchange(self) -> Exchange:
@@ -27,6 +26,20 @@ class DB:
         if person_id in self.people:
             raise Exception(f'invalid person id')
         self.people[person_id] = True
+
+    def person_exists(self, personId: str) -> bool:
+        if personId not in self.people:
+            raise Exception("Person not found")
+        return True
+
+    def get_exchange(self, exchange_id)-> Optional[Exchange]:
+        return self.exchanges[exchange_id]
+
+    def create_exclusion(self, exchange_id: str, p1: str, p2: str):
+        self.exchanges[exchange_id].exclusions.add((p1, p2))
+
+
+
 
 
 
